@@ -4,11 +4,20 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
+
 public class TextFade : MonoBehaviour, IPointerClickHandler
 {
-    // 인스펙터 노출 변수
-    // 일반
-    [SerializeField]
+	// 구조체
+	enum DONEDESTROY
+	{
+		None,
+		Script,
+		Object
+	}
+
+	// 인스펙터 노출 변수
+	// 일반
+	[SerializeField]
     private Text		  textBox = null;                   // 텍스트가 입력될 텍스트 박스
 
     [Space(20)]
@@ -18,6 +27,8 @@ public class TextFade : MonoBehaviour, IPointerClickHandler
     private float	      speed = 1f;                       // 텍스트 출력 속도
     [SerializeField]
     private bool		  touchSkip = false;                // 터치시 스킵기능 사용할지
+	[SerializeField]
+	private DONEDESTROY   doneDestroy = DONEDESTROY.None;	// 텍스트 출력이 끝나면 스크립트 또는 오브젝트를 파괴할것인지
 
 
 	// 인스펙터 비노출 변수
@@ -39,10 +50,30 @@ public class TextFade : MonoBehaviour, IPointerClickHandler
         {
             textBox = GetComponent<Text>();
         }
-    }
+	}
 
-    // 초기화
-    public void Initialize(Queue<string> newTexts)
+	// 마우스 클릭시
+	public void OnPointerClick(PointerEventData pointerEventData)
+	{
+		if (touchSkip)
+		{
+			// 텍스트 진행중 -> 텍스트 스킵
+			if (!isDone)
+			{
+				Debug.Log("Skip");
+				SkipOutputText();
+			}
+			// 텍스트 진행중 아님 -> 다음 텍스트 출력
+			else
+			{
+				Debug.Log("Next");
+				StartOutputText();
+			}
+		}
+	}
+
+	// 초기화
+	public void Initialize(Queue<string> newTexts)
     {
 		// 텍스트 모음 큐 초기화
 		texts = new Queue<string>(newTexts);
@@ -52,8 +83,9 @@ public class TextFade : MonoBehaviour, IPointerClickHandler
 	}
 
     // 텍스트 출력 시작
-    public void StartOutputText()
+    private void StartOutputText()
 	{
+		// 다음 텍스트가 있는지 확인
 		if (NextText())
 		{
 			isDone = false;
@@ -63,7 +95,8 @@ public class TextFade : MonoBehaviour, IPointerClickHandler
 		}
 		else
 		{
-			// *종료처리*
+			// 종료
+			DoneDestroy();
 		}
     }
 
@@ -105,28 +138,23 @@ public class TextFade : MonoBehaviour, IPointerClickHandler
 		textBox.text = targetText;
     }
 
-    // 마우스 클릭시
-    public void OnPointerClick(PointerEventData pointerEventData)
-    {
-		if (touchSkip)
+	// 끝났을 때 스크립트 또는 오브젝트를 파괴
+	private void DoneDestroy()
+	{
+		// 오브젝트 파괴
+		if (doneDestroy == DONEDESTROY.Object)
 		{
-			// 텍스트 진행중 -> 텍스트 스킵
-			if (!isDone)
-			{
-				Debug.Log("Skip");
-				SkipOutputText();
-			}
-			// 텍스트 진행중 아님 -> 다음 텍스트 출력
-			else
-			{
-				Debug.Log("Next");
-				StartOutputText();
-			}
+			Destroy(gameObject);
 		}
-    }
+		// 스크립트 파괴
+		else if (doneDestroy == DONEDESTROY.Script)
+		{
+			Destroy(this);
+		}
+	}
 
-    // 텍스트 출력
-    private IEnumerator OutputText()
+	// 텍스트 출력
+	private IEnumerator OutputText()
     {
 		// 텍스트가 다출력됬는지 확인
         while (textIndex < textArray.Length)
