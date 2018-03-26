@@ -16,10 +16,7 @@ public class CameraChase : MonoBehaviour
 	private float	  pocusX;						// 카메라의 초첨 ( X )
 	[SerializeField]
 	private float	  pocusY;                       // 카메라의 초점 ( Y )
-
-	// 인스펙터 비노출 변수
-	// 
-
+	
 
 	// 프레임
 	private void FixedUpdate()

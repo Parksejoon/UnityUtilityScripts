@@ -39,8 +39,6 @@ public class TextFade : MonoBehaviour, IPointerClickHandler
     private int			  textIndex = 0;                    // 배열 인덱스
     private bool	      isDone = true;                    // 끝났는지
     
-    // 수치
-
 
     // 시작 초기화
     private void Awake()
